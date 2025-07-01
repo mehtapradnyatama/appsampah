@@ -287,7 +287,7 @@ def classify():
                     'image_path': filename,
                     'predicted_class': predicted_class,
                     'confidence': confidence,
-                    'class_probabilities': json.dumps(class_probs),
+                    'class_probabilities': json.dumps(class_probs)
                 }
                 supabase_request('POST', 'classifications', classification_data)
                 
@@ -304,23 +304,46 @@ def classify():
     
     return render_template('classify.html')
 
+# Di dalam app.py, ganti fungsi dashboard() yang lama
+
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
         flash('Please login to access this page', 'error')
         return redirect(url_for('login'))
-    
-    response = supabase_request('GET', f'classifications?user_id=eq.{session["user_id"]}&order=created_at.desc')
+
+    # --- PERUBAHAN: Ambil hanya 10 item pertama untuk pemuatan awal ---
+    params = {
+        'user_id': f'eq.{session["user_id"]}',
+        'order': 'created_at.desc',
+        'limit': '10',
+        'offset': '0'
+    }
+    response = supabase_request('GET', 'classifications', params=params)
+
     classifications = []
     if response and response.status_code == 200:
         classifications = response.json()
-    
-    total_classifications = len(classifications)
+
+    # Ambil statistik total dari permintaan terpisah agar jumlahnya akurat
+    # Kita menggunakan 'count' untuk mendapatkan jumlah total tanpa menarik semua data
+    count_headers = {'Prefer': 'count=exact'}
+    count_params = {'user_id': f'eq.{session["user_id"]}'}
+    count_response = supabase_request('GET', 'classifications', headers=count_headers, params=count_params)
+
+    total_classifications = 0
+    if count_response and 'content-range' in count_response.headers:
+        total_classifications = int(count_response.headers['content-range'].split('/')[1])
+
     class_counts = {}
-    for c in classifications:
-        class_name = c['predicted_class']
-        class_counts[class_name] = class_counts.get(class_name, 0) + 1
-    
+    # Hitung class_counts dari data yang sudah di-load saja untuk efisiensi
+    temp_stats_response = supabase_request('GET', f'classifications?user_id=eq.{session["user_id"]}&select=predicted_class')
+    if temp_stats_response and temp_stats_response.status_code == 200:
+        all_classes = temp_stats_response.json()
+        for c in all_classes:
+            class_name = c['predicted_class']
+            class_counts[class_name] = class_counts.get(class_name, 0) + 1
+
     return render_template('dashboard.html', 
                          classifications=classifications,
                          total_classifications=total_classifications,
@@ -354,3 +377,28 @@ if __name__ == '__main__':
     if not load_model():
         logger.error("MODEL FAILED TO LOAD. The application will not work correctly.")
     app.run(debug=True, host='0.0.0.0', port=5000)
+    
+# Di dalam app.py, tambahkan fungsi baru ini
+
+@app.route('/api/classifications')
+def get_paginated_classifications():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    # Ambil parameter 'limit' dan 'offset' dari URL
+    limit = request.args.get('limit', 10, type=int)
+    offset = request.args.get('offset', 0, type=int)
+
+    params = {
+        'user_id': f'eq.{session["user_id"]}',
+        'order': 'created_at.desc',
+        'limit': str(limit),
+        'offset': str(offset)
+    }
+    response = supabase_request('GET', 'classifications', params=params)
+
+    if response and response.status_code == 200:
+        return jsonify(response.json())
+
+    # Kembalikan list kosong jika ada error
+    return jsonify([]), 500

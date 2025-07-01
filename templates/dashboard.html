@@ -5,7 +5,6 @@
 {% block content %}
 <div class="dashboard-container py-5">
     <div class="container">
-        <!-- Dashboard Header -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="dashboard-header">
@@ -15,7 +14,6 @@
             </div>
         </div>
 
-        <!-- Statistics Cards -->
         <div class="row mb-5">
             <div class="col-md-3 col-sm-6 mb-4">
                 <div class="stat-card">
@@ -63,7 +61,6 @@
             </div>
         </div>
 
-        <!-- Charts Section -->
         <div class="row mb-5">
             <div class="col-lg-8 mb-4">
                 <div class="chart-card">
@@ -82,7 +79,7 @@
                     </div>
                     <div class="chart-content">
                         <div class="category-breakdown">
-                            {% for class_name, count in class_counts.items() %}
+                            {% for class_name, count in class_counts.items()|sort(attribute='1', reverse=True) %}
                             <div class="breakdown-item">
                                 <div class="breakdown-info">
                                     <span class="breakdown-name">
@@ -101,7 +98,7 @@
                             </div>
                             {% endfor %}
                             
-                            {% if class_counts|length == 0 %}
+                            {% if not class_counts %}
                             <div class="text-center text-muted py-4">
                                 <i class="fas fa-chart-bar fa-3x mb-3"></i>
                                 <p>No classifications yet. Start by <a href="{{ url_for('classify') }}">uploading an image</a>!</p>
@@ -113,7 +110,6 @@
             </div>
         </div>
 
-        <!-- Recent Classifications -->
         <div class="row">
             <div class="col-12">
                 <div class="history-card">
@@ -138,8 +134,8 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {% for classification in classifications[:10] %}
+                                <tbody id="history-table-body">
+                                    {% for classification in classifications %}
                                     <tr>
                                         <td>
                                             <div class="table-image">
@@ -162,12 +158,8 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="date-display">
-                                                {{ classification.created_at[:10] }}
-                                            </span>
-                                            <small class="text-muted d-block">
-                                                {{ classification.created_at[11:16] }}
-                                            </small>
+                                            <span class="date-display">{{ classification.created_at[:10] }}</span>
+                                            <small class="text-muted d-block">{{ classification.created_at[11:19] }}</small>
                                         </td>
                                         <td>
                                             <button class="btn btn-sm btn-outline-info" 
@@ -181,9 +173,9 @@
                             </table>
                         </div>
                         
-                        {% if classifications|length > 10 %}
-                        <div class="text-center mt-3">
-                            <button class="btn btn-outline-secondary" onclick="loadMoreClassifications()">
+                        {% if total_classifications > 10 %}
+                        <div class="text-center p-3">
+                            <button class="btn btn-outline-secondary" id="load-more-btn" onclick="loadMoreClassifications()">
                                 <i class="fas fa-chevron-down me-2"></i>Load More
                             </button>
                         </div>
@@ -191,9 +183,7 @@
                         
                         {% else %}
                         <div class="empty-state">
-                            <div class="empty-icon">
-                                <i class="fas fa-camera"></i>
-                            </div>
+                            <div class="empty-icon"><i class="fas fa-camera"></i></div>
                             <h5>No Classifications Yet</h5>
                             <p>Start classifying waste to see your history here.</p>
                             <a href="{{ url_for('classify') }}" class="btn btn-primary">
@@ -208,7 +198,6 @@
     </div>
 </div>
 
-<!-- Classification Details Modal -->
 <div class="modal fade" id="detailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -216,9 +205,7 @@
                 <h5 class="modal-title">Classification Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Details will be loaded here -->
-            </div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 </div>
@@ -227,7 +214,6 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Kode untuk chart biarkan seperti semula
     const chartCanvas = document.getElementById('distributionChart');
     if (chartCanvas) {
         const ctx = chartCanvas.getContext('2d');
@@ -244,22 +230,11 @@ document.addEventListener('DOMContentLoaded', function() {
             type: 'doughnut',
             data: {
                 labels: labels.map(label => label.charAt(0).toUpperCase() + label.slice(1)),
-                datasets: [{
-                    data: data,
-                    backgroundColor: backgroundColors,
-                    borderColor: backgroundColors.map(color => color),
-                    borderWidth: 2
-                }]
+                datasets: [{ data: data, backgroundColor: backgroundColors, borderWidth: 2 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { padding: 20, usePointStyle: true }
-                    }
-                }
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } } }
             }
         });
     }
@@ -270,7 +245,7 @@ async function viewDetails(classificationId) {
     const modalBody = document.getElementById('modalBody');
     const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
 
-    // 1. Tampilkan modal dengan spinner loading
+    // Tampilkan modal dengan spinner loading
     modalBody.innerHTML = `
         <div class="text-center py-5">
             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
@@ -281,47 +256,51 @@ async function viewDetails(classificationId) {
     detailsModal.show();
 
     try {
-        // 2. Ambil data dari API
         const response = await fetch(`/api/classification/${classificationId}`);
-        
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Gagal memuat detail.');
         }
-
         const details = await response.json();
 
-        // 3. Proses data probabilitas
+        // Objek berisi deskripsi singkat untuk setiap kategori
+        const categoryDescriptions = {
+            cardboard: 'Kardus adalah salah satu material yang paling mudah didaur ulang. Pastikan untuk memipihkan kotak sebelum dibuang untuk menghemat ruang.',
+            paper: 'Hampir semua jenis kertas bisa didaur ulang. Menjaga kertas tetap kering dan bersih adalah kunci untuk proses daur ulang yang sukses.',
+            plastic: 'Daur ulang plastik sangat penting untuk mengurangi polusi. Bilas wadah dari sisa makanan atau cairan sebelum didaur ulang.',
+            metal: 'Logam seperti aluminium dan baja dapat didaur ulang berulang kali tanpa batas, menghemat energi yang sangat besar.',
+            glass: 'Kaca 100% dapat didaur ulang tanpa kehilangan kualitas atau kemurniannya. Pisahkan kaca bening dan berwarna jika memungkinkan.'
+        };
+
+        const predictedClassKey = details.predicted_class.toLowerCase();
+        const descriptionText = categoryDescriptions[predictedClassKey] || '';
+
+        // Proses data probabilitas
         const probabilities = JSON.parse(details.class_probabilities || '{}');
         const sortedProbs = Object.entries(probabilities).sort(([,a],[,b]) => b-a);
         
-        let probHtml = '';
-        sortedProbs.forEach(([name, prob]) => {
-            probHtml += `
-                <div class="prediction-item">
-                    <div class="prediction-info">
-                        <span class="prediction-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
-                        <span class="prediction-prob">${prob.toFixed(1)}%</span>
-                    </div>
-                    <div class="prediction-bar">
-                        <div class="prediction-fill prediction-${name.toLowerCase()}" style="width: ${prob}%"></div>
-                    </div>
+        let probHtml = sortedProbs.map(([name, prob]) => `
+            <div class="prediction-item">
+                <div class="prediction-info">
+                    <span class="prediction-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
+                    <span class="prediction-prob">${prob.toFixed(1)}%</span>
                 </div>
-            `;
-        });
+                <div class="prediction-bar"><div class="prediction-fill prediction-${name.toLowerCase()}" style="width: ${prob}%"></div></div>
+            </div>`).join('');
         
-        // Format tanggal
-        const formattedDate = new Date(details.created_at).toLocaleString('id-ID', {
-            dateStyle: 'full',
-            timeStyle: 'short'
-        });
+        const formattedDate = new Date(details.created_at).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' });
 
-        // 4. Bangun HTML untuk modal dengan path gambar yang sudah diperbaiki
+        // Bangun HTML untuk modal
         const detailHtml = `
             <div class="row">
                 <div class="col-md-6">
                     <h5 class="mb-3">Gambar</h5>
                     <img src="/static/uploads/${details.image_path}" class="img-fluid rounded shadow-sm" alt="Classification image">
+                    
+                    <p class="text-muted mt-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        ${descriptionText}
+                    </p>
                 </div>
                 <div class="col-md-6">
                     <h5 class="mb-3">Hasil Klasifikasi</h5>
@@ -348,11 +327,9 @@ async function viewDetails(classificationId) {
             </div>
         `;
 
-        // 5. Masukkan HTML ke dalam modal
         modalBody.innerHTML = detailHtml;
 
     } catch (error) {
-        // 6. Tangani error
         modalBody.innerHTML = `
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-triangle me-2"></i>
@@ -361,8 +338,70 @@ async function viewDetails(classificationId) {
     }
 }
 
-function loadMoreClassifications() {
-    alert('Fungsi "Load More" belum diimplementasikan.');
+// PERUBAHAN: FUNGSI BARU UNTUK LOAD MORE
+async function loadMoreClassifications() {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const tableBody = document.getElementById('history-table-body');
+    if (!loadMoreBtn || !tableBody) return;
+
+    const originalBtnText = loadMoreBtn.innerHTML;
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...`;
+    
+    const currentItemCount = tableBody.rows.length;
+
+    try {
+        const response = await fetch(`/api/classifications?offset=${currentItemCount}&limit=10`);
+        const newClassifications = await response.json();
+
+        if (newClassifications.length > 0) {
+            newClassifications.forEach(c => {
+                const newRow = tableBody.insertRow();
+                newRow.innerHTML = `
+                    <td>
+                        <div class="table-image">
+                            <img src="/static/uploads/${c.image_path}" alt="Classification" class="img-thumbnail">
+                        </div>
+                    </td>
+                    <td>
+                        <span class="waste-badge waste-${c.predicted_class.toLowerCase()}">${c.predicted_class.charAt(0).toUpperCase() + c.predicted_class.slice(1)}</span>
+                    </td>
+                    <td>
+                        <div class="confidence-display">
+                            <span class="confidence-text">${c.confidence.toFixed(1)}%</span>
+                            <div class="confidence-bar-small">
+                                <div class="confidence-fill-small" style="width: ${c.confidence}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="date-display">${c.created_at.substring(0, 10)}</span>
+                        <small class="text-muted d-block">${c.created_at.substring(11, 19)}</small>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" onclick="viewDetails('${c.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+            });
+        }
+
+        // Sembunyikan tombol jika data yang diterima lebih sedikit dari yang diminta (halaman terakhir)
+        if (newClassifications.length < 10) {
+            loadMoreBtn.style.display = 'none';
+        }
+
+    } catch (error) {
+        console.error("Gagal memuat riwayat lainnya:", error);
+        loadMoreBtn.innerHTML = 'Gagal Memuat';
+    } finally {
+        // Kembalikan tombol ke keadaan semula jika tidak disembunyikan
+        if (loadMoreBtn.style.display !== 'none') {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.innerHTML = originalBtnText;
+        }
+    }
 }
 </script>
 {% endblock %}
