@@ -51,7 +51,7 @@ def load_model():
     
     try:
         # Load model configuration
-        config_path = 'model\model_config.json'
+        config_path = 'appsampah\model\model_config.json'
         if os.path.exists(config_path):
             with open(config_path, 'r') as f:
                 config = json.load(f)
@@ -66,8 +66,8 @@ def load_model():
             logger.warning("Config file not found, using default configuration")
         
         # Try to load full model first (recommended)
-        full_model_path = 'model\model_mobilenetv2_full.pth'
-        weights_path = 'model\model_mobilenetv2_weights.pth'
+        full_model_path = 'appsampah\model\model_mobilenetv2_full.pth'
+        weights_path = 'appsampah\model\model_mobilenetv2_weights.pth'
         
         if os.path.exists(full_model_path):
             # Load full model (architecture + weights)
@@ -133,7 +133,9 @@ def predict_image(image_path):
     global model, class_labels, transform
     
     if model is None or transform is None:
-        return None, None
+        logger.error("Model or transform is not loaded, cannot predict.")
+        # FIX 1: Pastikan untuk selalu mengembalikan 3 nilai
+        return None, None, None
     
     try:
         # Load and preprocess image
@@ -146,17 +148,21 @@ def predict_image(image_path):
             probabilities = F.softmax(outputs, dim=1)
             confidence, predicted = torch.max(probabilities, 1)
             
-            predicted_class = class_labels[predicted.item()]
+            # FIX 2: Konversi predicted.item() (integer) ke string sebelum mengakses dictionary
+            predicted_class = class_labels[str(predicted.item())]
             confidence_score = confidence.item() * 100
             
             # Get all class probabilities
             all_probs = probabilities[0].numpy()
-            class_probs = {class_labels[i]: float(all_probs[i] * 100) for i in range(len(class_labels))}
+            
+            # FIX 2: Konversi i (integer) ke string sebelum mengakses dictionary
+            class_probs = {class_labels[str(i)]: float(all_probs[i] * 100) for i in range(len(class_labels))}
             
             return predicted_class, confidence_score, class_probs
             
     except Exception as e:
         logger.error(f"Error predicting image: {str(e)}")
+        # Pastikan exception juga mengembalikan 3 nilai
         return None, None, None
 
 def supabase_request(method, endpoint, data=None, headers=None, params=None):
