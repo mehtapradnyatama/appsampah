@@ -1,0 +1,515 @@
+# ================================
+# EcoClassify .gitignore
+# ================================
+
+# ================================
+# Environment and Configuration
+# ================================
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+config.ini
+secrets.json
+
+# ================================
+# Python
+# ================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django/Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# ================================
+# Machine Learning / AI Models
+# ================================
+# Model files (too large for git)
+*.pth
+*.pt
+*.h5
+*.pkl
+*.pickle
+*.joblib
+*.onnx
+*.pb
+*.tflite
+*.caffemodel
+*.prototxt
+
+# Training data and logs
+data/
+datasets/
+logs/
+runs/
+lightning_logs/
+mlruns/
+wandb/
+*.log
+
+# Model checkpoints and outputs
+checkpoints/
+outputs/
+results/
+experiments/
+
+# Jupyter notebook outputs
+*.ipynb
+
+# ================================
+# File Uploads and User Data
+# ================================
+static/uploads/
+uploads/
+user_uploads/
+temp_uploads/
+static/user_images/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.webp
+# Exception: keep example images
+!static/images/examples/
+!static/images/demo/
+
+# ================================
+# Database
+# ================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+database.db
+local.db
+
+# Database backups
+*.sql.gz
+*.backup
+*.dump
+
+# ================================
+# Logs and Temporary Files
+# ================================
+*.log
+logs/
+log/
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ================================
+# Operating System
+# ================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ================================
+# IDEs and Editors
+# ================================
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Atom
+.atom/
+
+# ================================
+# Docker
+# ================================
+.dockerignore
+
+# ================================
+# Node.js (if using for build tools)
+# ================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+.node_repl_history
+*.tgz
+.yarn-integrity
+.parcel-cache
+
+# ================================
+# Frontend Build Tools
+# ================================
+# Webpack
+dist/
+build/
+
+# Parcel
+.cache/
+.parcel-cache/
+
+# ================================
+# CSS Preprocessors
+# ================================
+.sass-cache/
+*.css.map
+*.sass.map
+*.scss.map
+
+# ================================
+# Testing
+# ================================
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# Test artifacts
+.pytest_cache/
+.testmondata
+
+# ================================
+# Security and Keys
+# ================================
+# Private keys
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+
+# API keys and secrets
+secrets/
+.secrets/
+keys/
+.keys/
+
+# OAuth tokens
+.oauth
+
+# ================================
+# Backup Files
+# ================================
+*.bak
+*.backup
+*.old
+*.orig
+*~
+
+# ================================
+# Compressed Files
+# ================================
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# ================================
+# Application Specific
+# ================================
+# Flask instance folder
+instance/
+
+# Flask-Assets webassets cache
+.webassets-cache/
+
+# Session files
+flask_session/
+sessions/
+
+# Cache directories
+.cache/
+cache/
+
+# Static file collections
+staticfiles/
+collected-static/
+
+# Media files (user uploads)
+media/
+
+# ================================
+# Monitoring and Analytics
+# ================================
+# Prometheus data
+prometheus_data/
+
+# Grafana data
+grafana_data/
+
+# ================================
+# Development Tools
+# ================================
+# Pre-commit hooks
+.pre-commit-config.yaml
+
+# Localization
+*.mo
+
+# ================================
+# Cloud and Deployment
+# ================================
+# Heroku
+.heroku/
+
+# Vercel
+.vercel
+
+# AWS
+.aws/
+
+# Google Cloud
+.gcloud/
+
+# Docker Compose override
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Kubernetes
+*.kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# ================================
+# Documentation
+# ================================
+# Sphinx build
+_build/
+_static/
+_templates/
+
+# ================================
+# Miscellaneous
+# ================================
+# Thumbnails
+.thumbnails/
+
+# Temporary folders
+tmp/
+temp/
+
+# IDE workspace files
+*.workspace
+*.code-workspace
+
+# Local history
+.history/
+
+# File system watcher
+.watchmanconfig
+
+# Editor backup files
+*~
+*.swp
+*.swo
+
+# ================================
+# Custom Exceptions
+# ================================
+# Keep important example files
+!static/images/demo/
+!static/images/examples/
+!docs/images/
+!model/README.md
+!database/README.md
+
+# Keep configuration templates
+!.env.example
+!config.example.py
+
+# Keep empty directories with .gitkeep
+!.gitkeep

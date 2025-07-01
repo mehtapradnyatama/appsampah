@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}About - EcoClassify{% endblock %}
+
+
+{% block content %}
+<div class="about-container py-5">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="page-title">
+                    <i class="fas fa-info-circle me-3"></i>About EcoClassify
+                </h1>
+                <p class="page-subtitle">Revolutionizing waste management through artificial intelligence</p>
+            </div>
+        </div>
+
+        <!-- Mission Section -->
+        <div class="row mb-5">
+            <div class="col-lg-6 mb-4">
+                <div class="about-card">
+                    <div class="card-icon mission">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>Our Mission</h3>
+                    <p>To empower individuals and organizations with AI-driven tools that make waste sorting and recycling more accurate, efficient, and accessible. We believe that proper waste classification is the first step toward a sustainable future.</p>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="about-card">
+                    <div class="card-icon vision">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h3>Our Vision</h3>
+                    <p>A world where every piece of waste is properly classified and recycled, reducing environmental impact and promoting circular economy principles through the power of artificial intelligence and community engagement.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technology Section -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="tech-section">
+                    <h2 class="section-title text-center mb-5">
+                        <i class="fas fa-cogs me-2"></i>Technology Behind EcoClassify
+                    </h2>
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="tech-card">
+                                <div class="tech-content">
+                                    <h4><i class="fas fa-brain me-2"></i>Deep Learning Model</h4>
+                                    <p>Our classification system is powered by MobileNetV2, a state-of-the-art convolutional neural network architecture optimized for mobile and web applications. The model has been fine-tuned on a comprehensive dataset of waste images to achieve:</p>
+                                    
+                                    <div class="tech-stats">
+                                        <div class="stat-item">
+                                            <span class="stat-number">93.67%</span>
+                                            <span class="stat-label">Accuracy</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-number">2,970</span>
+                                            <span class="stat-label">Training Images</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-number">5</span>
+                                            <span class="stat-label">Categories</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-number">361K</span>
+                                            <span class="stat-label">Parameters</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Section -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="section-title text-center mb-5">
+                    <i class="fas fa-recycle me-2"></i>Waste Categories We Classify
+                </h2>
+                <div class="categories-grid">
+                    <div class="category-detail">
+                        <div class="category-icon-large cardboard">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h4>Cardboard</h4>
+                        <p>Corrugated boxes, packaging materials, and cardboard containers. Highly recyclable and commonly found in households and businesses.</p>
+                        <div class="category-facts">
+                            <span class="fact">♻️ 100% recyclable</span>
+                            <span class="fact">🌳 Saves trees</span>
+                        </div>
+                    </div>
+                    
+                    <div class="category-detail">
+                        <div class="category-icon-large glass">
+                            <i class="fas fa-wine-bottle"></i>
+                        </div>
+                        <h4>Glass</h4>
+                        <p>Bottles, jars, and glass containers. Can be recycled indefinitely without losing quality or purity.</p>
+                        <div class="category-facts">
+                            <span class="fact">♾️ Infinite recycling</span>
+                            <span class="fact">⚡ Saves energy</span>
+                        </div>
+                    </div>
+                    
+                    <div class="category-detail">
+                        <div class="category-icon-large metal">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <h4>Metal</h4>
+                        <p>Aluminum cans, steel containers, and metal packaging. Recycling metal saves significant energy and natural resources.</p>
+                        <div class="category-facts">
+                            <span class="fact">🔋 95% energy saved</span>
+                            <span class="fact">🏭 Reduces mining</span>
+                        </div>
+                    </div>
+                    
+                    <div class="category-detail">
+                        <div class="category-icon-large paper">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h4>Paper</h4>
+                        <p>Newspapers, magazines, office paper, and books. Paper recycling helps preserve forests and reduces landfill waste.</p>
+                        <div class="category-facts">
+                            <span class="fact">🌲 Protects forests</span>
+                            <span class="fact">💧 Saves water</span>
+                        </div>
+                    </div>
+                    
+                    <div class="category-detail">
+                        <div class="category-icon-large plastic">
+                            <i class="fas fa-bottle-water"></i>
+                        </div>
+                        <h4>Plastic</h4>
+                        <p>Bottles, containers, and plastic packaging. Proper plastic recycling helps reduce ocean pollution and conserves petroleum.</p>
+                        <div class="category-facts">
+                            <span class="fact">🌊 Protects oceans</span>
+                            <span class="fact">🛢️ Saves petroleum</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impact Section -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="impact-section">
+                    <h2 class="section-title text-center mb-5">
+                        <i class="fas fa-leaf me-2"></i>Environmental Impact
+                    </h2>
+                    <div class="row">
+                        <div class="col-md-4 mb-4">
+                            <div class="impact-card">
+                                <div class="impact-icon">
+                                    <i class="fas fa-seedling"></i>
+                                </div>
+                                <h4>Reduced Contamination</h4>
+                                <p>Proper waste classification reduces contamination in recycling streams, making the recycling process more efficient and cost-effective.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="impact-card">
+                                <div class="impact-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h4>Increased Recycling Rates</h4>
+                                <p>Better classification leads to higher recycling rates, reducing the amount of waste sent to landfills and incinerators.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="impact-card">
+                                <div class="impact-icon">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <h4>Education & Awareness</h4>
+                                <p>Our platform educates users about proper waste sorting, creating a more environmentally conscious community.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Details -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="technical-section">
+                    <h2 class="section-title text-center mb-5">
+                        <i class="fas fa-code me-2"></i>Technical Implementation
+                    </h2>
+                    <div class="row">
+                        <div class="col-lg-6 mb-4">
+                            <div class="tech-detail-card">
+                                <h4><i class="fas fa-robot me-2"></i>Machine Learning</h4>
+                                <ul class="tech-list">
+                                    <li><strong>Architecture:</strong> MobileNetV2 with transfer learning</li>
+                                    <li><strong>Framework:</strong> PyTorch</li>
+                                    <li><strong>Training:</strong> 50 epochs with data augmentation</li>
+                                    <li><strong>Optimization:</strong> Adam optimizer with learning rate scheduling</li>
+                                    <li><strong>Accuracy:</strong> 93.67% on test dataset</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 mb-4">
+                            <div class="tech-detail-card">
+                                <h4><i class="fas fa-server me-2"></i>Backend & Infrastructure</h4>
+                                <ul class="tech-list">
+                                    <li><strong>Framework:</strong> Flask (Python)</li>
+                                    <li><strong>Database:</strong> Supabase (PostgreSQL)</li>
+                                    <li><strong>Authentication:</strong> Supabase Auth</li>
+                                    <li><strong>Image Processing:</strong> PIL/Pillow</li>
+                                    <li><strong>Deployment:</strong> Production-ready with Gunicorn</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="row">
+            <div class="col-12 text-center">
+                <div class="cta-about">
+                    <h3>Ready to Start Classifying?</h3>
+                    <p>Join our community of environmentally conscious users and start making a difference today.</p>
+                    {% if not session.user_id %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-user-plus me-2"></i>Get Started
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('classify') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-camera me-2"></i>Classify Your Waste
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

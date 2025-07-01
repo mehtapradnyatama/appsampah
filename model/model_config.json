@@ -1,0 +1,22 @@
+{
+    "num_classes": 5,
+    "image_size": [
+        224,
+        224
+    ],
+    "class_labels": {
+        "0": "cardboard",
+        "1": "glass",
+        "2": "metal",
+        "3": "paper",
+        "4": "plastic"
+    },
+    "batch_size": 32,
+    "learning_rate": 0.0001,
+    "epochs": 50,
+    "device": "cuda:0",
+    "model_state": {
+        "test_accuracy": 0.9266666666666666,
+        "test_loss": 0.19851456503073375
+    }
+}

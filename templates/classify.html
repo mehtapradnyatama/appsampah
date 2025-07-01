@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Classify Waste - EcoClassify{% endblock %}
+
+{% block content %}
+<div class="classify-container py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h1 class="page-title">
+                    <i class="fas fa-camera me-3"></i>Classify Your Waste
+                </h1>
+                <p class="page-subtitle">Upload an image to identify the type of waste and get recycling recommendations</p>
+            </div>
+        </div>
+
+        {% if not result %}
+        <!-- Upload Section -->
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="upload-card">
+                    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-content">
+                                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                                <h3>Drop your image here</h3>
+                                <p>or click to browse files</p>
+                                <p class="file-info">Supports: JPG, PNG, JPEG (max 16MB)</p>
+                            </div>
+                            <input type="file" 
+                                   name="file" 
+                                   id="fileInput" 
+                                   accept="image/*" 
+                                   required>
+                        </div>
+
+                        <div class="preview-section" id="previewSection" style="display: none;">
+                            <div class="image-preview">
+                                <img id="imagePreview" src="" alt="Preview">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-image" onclick="removeImage()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="file-details" id="fileDetails"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mt-4" id="classifyBtn" disabled>
+                            <i class="fas fa-brain me-2"></i>Classify Image
+                            <span class="spinner-border spinner-border-sm ms-2 d-none" id="loadingSpinner"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="instructions-card">
+                    <h4><i class="fas fa-lightbulb me-2"></i>Tips for Better Results</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="tips-list">
+                                <li><i class="fas fa-check text-success me-2"></i>Ensure good lighting</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Focus on a single item</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Clear, unobstructed view</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="tips-list">
+                                <li><i class="fas fa-check text-success me-2"></i>Fill the frame with the object</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Avoid cluttered backgrounds</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Use high-resolution images</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Results Section -->
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+                <div class="results-card">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="result-image">
+                                <img src="{{ url_for('static', filename='uploads/' + image_path) }}" 
+                                     alt="Classified Image" 
+                                     class="img-fluid rounded">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="result-content">
+                                <div class="result-header">
+                                    <h3><i class="fas fa-check-circle text-success me-2"></i>Classification Complete</h3>
+                                </div>
+
+                                <div class="result-main">
+                                    <div class="predicted-class">
+                                        <h2 class="waste-type waste-{{ predicted_class.lower() }}">
+                                            {{ predicted_class.title() }}
+                                        </h2>
+                                        <div class="confidence-score">
+                                            <span class="confidence-label">Confidence:</span>
+                                            <span class="confidence-value">{{ "%.1f"|format(confidence) }}%</span>
+                                            <div class="confidence-bar">
+                                                <div class="confidence-fill" style="width: {{ confidence }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="all-predictions">
+                                    <h5>All Predictions:</h5>
+                                    {% for class_name, prob in class_probs.items() %}
+                                    <div class="prediction-item">
+                                        <div class="prediction-info">
+                                            <span class="prediction-name">{{ class_name.title() }}</span>
+                                            <span class="prediction-prob">{{ "%.1f"|format(prob) }}%</span>
+                                        </div>
+                                        <div class="prediction-bar">
+                                            <div class="prediction-fill prediction-{{ class_name.lower() }}" 
+                                                 style="width: {{ prob }}%"></div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="result-actions">
+                                    <a href="{{ url_for('classify') }}" class="btn btn-primary">
+                                        <i class="fas fa-camera me-2"></i>Classify Another
+                                    </a>
+                                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-chart-bar me-2"></i>View History
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recycling Information -->
+                <div class="recycling-info">
+                    <h4><i class="fas fa-recycle me-2"></i>Recycling Information</h4>
+                    <div class="recycling-content" id="recyclingContent">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const previewSection = document.getElementById('previewSection');
+    const imagePreview = document.getElementById('imagePreview');
+    const fileDetails = document.getElementById('fileDetails');
+    const classifyBtn = document.getElementById('classifyBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    // Upload area click
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('drag-over');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    function handleFile(file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file.');
+            return;
+        }
+
+        // Validate file size (16MB)
+        if (file.size > 16 * 1024 * 1024) {
+            alert('File size must be less than 16MB.');
+            return;
+        }
+
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            previewSection.style.display = 'block';
+            uploadArea.style.display = 'none';
+            classifyBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+
+        // Show file details
+        fileDetails.innerHTML = `
+            <p><strong>File:</strong> ${file.name}</p>
+            <p><strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            <p><strong>Type:</strong> ${file.type}</p>
+        `;
+    }
+
+    // Form submission
+    uploadForm.addEventListener('submit', function(e) {
+        classifyBtn.disabled = true;
+        loadingSpinner.classList.remove('d-none');
+        classifyBtn.innerHTML = '<i class="fas fa-brain me-2"></i>Processing... <span class="spinner-border spinner-border-sm ms-2"></span>';
+    });
+
+    // Populate recycling information if we have results
+    {% if result %}
+    populateRecyclingInfo('{{ predicted_class.lower() }}');
+    {% endif %}
+});
+
+function removeImage() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('previewSection').style.display = 'none';
+    document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('classifyBtn').disabled = true;
+}
+
+const recyclingInfo = {
+    cardboard: {
+        icon: 'fas fa-box',
+        color: '#f39c12',
+        description: 'Cardboard is highly recyclable and can be turned into new boxes and paper products.',
+        tips: [
+            'Remove all tape, staples, and labels',
+            'Break down boxes to save space',
+            'Keep dry - wet cardboard can\'t be recycled',
+            'Don\'t include food-stained cardboard'
+        ],
+        process: 'Cardboard is pulped, cleaned, and reformed into new paper products.'
+    },
+    glass: {
+        icon: 'fas fa-wine-bottle',
+        color: '#27ae60',
+        description: 'Glass can be recycled indefinitely without losing quality.',
+        tips: [
+            'Remove lids and caps',
+            'Rinse containers to remove food residue',
+            'Don\'t mix different glass colors',
+            'Don\'t include broken glass in regular recycling'
+        ],
+        process: 'Glass is crushed, melted, and reformed into new containers.'
+    },
+    metal: {
+        icon: 'fas fa-cog',
+        color: '#3498db',
+        description: 'Metal recycling saves energy and natural resources.',
+        tips: [
+            'Rinse cans and containers',
+            'Remove labels if easily removable',
+            'Crush cans to save space',
+            'Don\'t include metal caps from glass bottles'
+        ],
+        process: 'Metal is melted down and reformed into new products.'
+    },
+    paper: {
+        icon: 'fas fa-file-alt',
+        color: '#9b59b6',
+        description: 'Paper recycling helps preserve forests and reduces landfill waste.',
+        tips: [
+            'Remove all staples and clips',
+            'Don\'t include wax-coated or plastic-coated paper',
+            'Keep paper dry and clean',
+            'Separate different paper grades'
+        ],
+        process: 'Paper is pulped, de-inked, and reformed into new paper products.'
+    },
+    plastic: {
+        icon: 'fas fa-bottle-water',
+        color: '#e74c3c',
+        description: 'Plastic recycling reduces ocean pollution and conserves resources.',
+        tips: [
+            'Check the recycling number on the bottom',
+            'Rinse containers thoroughly',
+            'Remove caps and lids',
+            'Don\'t include plastic bags in curbside recycling'
+        ],
+        process: 'Plastic is shredded, melted, and reformed into new plastic products.'
+    }
+};
+
+function populateRecyclingInfo(wasteType) {
+    const info = recyclingInfo[wasteType];
+    if (!info) return;
+
+    const content = document.getElementById('recyclingContent');
+    content.innerHTML = `
+        <div class="recycling-details">
+            <div class="recycling-header">
+                <i class="${info.icon} me-2" style="color: ${info.color}"></i>
+                <h5>${wasteType.charAt(0).toUpperCase() + wasteType.slice(1)} Recycling</h5>
+            </div>
+            <p class="recycling-description">${info.description}</p>
+            
+            <div class="recycling-tips">
+                <h6><i class="fas fa-lightbulb me-2"></i>Recycling Tips:</h6>
+                <ul>
+                    ${info.tips.map(tip => `<li>${tip}</li>`).join('')}
+                </ul>
+            </div>
+            
+            <div class="recycling-process">
+                <h6><i class="fas fa-cogs me-2"></i>How it's processed:</h6>
+                <p>${info.process}</p>
+            </div>
+        </div>
+    `;
+}
+</script>
+{% endblock %}

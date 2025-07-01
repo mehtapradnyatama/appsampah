@@ -1,0 +1,235 @@
+version: '3.8'
+
+services:
+  # ================================
+  # Main Application Service
+  # ================================
+  web:
+    build:
+      context: .
+      target: development
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    volumes:
+      - .:/app
+      - uploads_data:/app/static/uploads
+      - model_data:/app/model
+    depends_on:
+      - redis
+    networks:
+      - ecoclassify_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ================================
+  # Redis Service (for caching and sessions)
+  # ================================
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecoclassify_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================
+  # Nginx Service (reverse proxy)
+  # ================================
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - uploads_data:/var/www/uploads:ro
+      - static_data:/var/www/static:ro
+    depends_on:
+      - web
+    networks:
+      - ecoclassify_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================
+  # Monitoring Services
+  # ================================
+  
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - ecoclassify_network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Grafana for metrics visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - ecoclassify_network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # ================================
+  # Development Tools
+  # ================================
+  
+  # Jupyter Notebook for ML experiments
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyter
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - .:/home/jovyan/work
+      - jupyter_data:/home/jovyan
+    networks:
+      - ecoclassify_network
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  # pgAdmin for database management (if using PostgreSQL locally)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@ecoclassify.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - ecoclassify_network
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  # ================================
+  # Backup Service
+  # ================================
+  backup:
+    image: postgres:13-alpine
+    volumes:
+      - backup_data:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    environment:
+      - PGPASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+    networks:
+      - ecoclassify_network
+    restart: "no"
+    profiles:
+      - backup
+    command: ["/backup.sh"]
+
+# ================================
+# Networks
+# ================================
+networks:
+  ecoclassify_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ================================
+# Volumes
+# ================================
+volumes:
+  redis_data:
+    driver: local
+  uploads_data:
+    driver: local
+  static_data:
+    driver: local
+  model_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  jupyter_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  backup_data:
+    driver: local
+
+# ================================
+# Usage Instructions
+# ================================
+# 
+# Development mode:
+# docker-compose up
+# 
+# Production mode:
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# 
+# With development tools:
+# docker-compose --profile dev up
+# 
+# Run backup:
+# docker-compose --profile backup run backup
+# 
+# Scale web service:
+# docker-compose up --scale web=3
+# 
+# View logs:
+# docker-compose logs -f web
+# 
+# Stop all services:
+# docker-compose down
+# 
+# Remove volumes (careful!):
+# docker-compose down -v

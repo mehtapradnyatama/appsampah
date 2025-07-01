@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="display-4 fw-bold text-primary mb-4">
+                        <i class="fas fa-recycle me-3"></i>EcoClassify
+                    </h1>
+                    <p class="lead mb-4">
+                        Revolutionize waste management with AI-powered classification. 
+                        Upload an image and instantly identify whether your waste is 
+                        cardboard, glass, metal, paper, or plastic.
+                    </p>
+                    <div class="hero-stats mb-4">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="stat-card">
+                                    <h3 class="text-success">93.67%</h3>
+                                    <p class="text-muted">Accuracy</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-card">
+                                    <h3 class="text-info">5</h3>
+                                    <p class="text-muted">Categories</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-card">
+                                    <h3 class="text-warning">AI</h3>
+                                    <p class="text-muted">Powered</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-buttons">
+                        {% if session.user_id %}
+                            <a href="{{ url_for('classify') }}" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-camera me-2"></i>Start Classifying
+                            </a>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-chart-bar me-2"></i>View Dashboard
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-user-plus me-2"></i>Get Started
+                            </a>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image">
+                    <div class="image-container">
+                        <div class="floating-card card-1">
+                            <i class="fas fa-box text-warning"></i>
+                            <span>Cardboard</span>
+                        </div>
+                        <div class="floating-card card-2">
+                            <i class="fas fa-wine-bottle text-success"></i>
+                            <span>Glass</span>
+                        </div>
+                        <div class="floating-card card-3">
+                            <i class="fas fa-cog text-info"></i>
+                            <span>Metal</span>
+                        </div>
+                        <div class="floating-card card-4">
+                            <i class="fas fa-file-alt text-primary"></i>
+                            <span>Paper</span>
+                        </div>
+                        <div class="floating-card card-5">
+                            <i class="fas fa-bottle-water text-danger"></i>
+                            <span>Plastic</span>
+                        </div>
+                        <div class="center-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">Simple, fast, and accurate waste classification in three steps</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <h4>1. Upload Image</h4>
+                    <p>Take a photo or upload an image of your waste item. Our system supports JPG, PNG, and JPEG formats.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h4>2. AI Analysis</h4>
+                    <p>Our MobileNetV2 model analyzes your image using advanced deep learning techniques with 93.67% accuracy.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-recycle"></i>
+                    </div>
+                    <h4>3. Get Results</h4>
+                    <p>Receive instant classification results with confidence scores and recycling recommendations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Waste Categories Section -->
+<section class="categories-section py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="section-title">Waste Categories We Classify</h2>
+                <p class="section-subtitle">Our AI can identify these five main types of waste materials</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+                <div class="category-card">
+                    <div class="category-icon cardboard">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <h5>Cardboard</h5>
+                    <p>Boxes, packaging materials, and corrugated cardboard</p>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+                <div class="category-card">
+                    <div class="category-icon glass">
+                        <i class="fas fa-wine-bottle"></i>
+                    </div>
+                    <h5>Glass</h5>
+                    <p>Bottles, jars, and other glass containers</p>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+                <div class="category-card">
+                    <div class="category-icon metal">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <h5>Metal</h5>
+                    <p>Cans, aluminum foil, and metal containers</p>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+                <div class="category-card">
+                    <div class="category-icon paper">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h5>Paper</h5>
+                    <p>Newspapers, magazines, and paper documents</p>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6 mb-4">
+                <div class="category-card">
+                    <div class="category-icon plastic">
+                        <i class="fas fa-bottle-water"></i>
+                    </div>
+                    <h5>Plastic</h5>
+                    <p>Bottles, containers, and plastic packaging</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white mb-4">Ready to Make a Difference?</h2>
+                <p class="text-white-50 mb-4">Join thousands of users who are already making smarter recycling decisions</p>
+                {% if not session.user_id %}
+                <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Sign Up Now
+                </a>
+                {% else %}
+                <a href="{{ url_for('classify') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-camera me-2"></i>Classify Your Waste
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
