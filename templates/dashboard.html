@@ -227,80 +227,142 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize distribution chart
-    const ctx = document.getElementById('distributionChart').getContext('2d');
-    
-    const classData = {{ class_counts | tojson }};
-    const labels = Object.keys(classData);
-    const data = Object.values(classData);
-    const colors = {
-        'cardboard': '#f39c12',
-        'glass': '#27ae60',
-        'metal': '#3498db',
-        'paper': '#9b59b6',
-        'plastic': '#e74c3c'
-    };
-    
-    const backgroundColors = labels.map(label => colors[label.toLowerCase()] || '#95a5a6');
-    const borderColors = backgroundColors.map(color => color);
-    
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels.map(label => label.charAt(0).toUpperCase() + label.slice(1)),
-            datasets: [{
-                data: data,
-                backgroundColor: backgroundColors,
-                borderColor: borderColors,
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
+    // Kode untuk chart biarkan seperti semula
+    const chartCanvas = document.getElementById('distributionChart');
+    if (chartCanvas) {
+        const ctx = chartCanvas.getContext('2d');
+        const classData = {{ class_counts | tojson }};
+        const labels = Object.keys(classData);
+        const data = Object.values(classData);
+        const colors = {
+            'cardboard': '#f39c12', 'glass': '#27ae60', 'metal': '#3498db',
+            'paper': '#9b59b6', 'plastic': '#e74c3c'
+        };
+        const backgroundColors = labels.map(label => colors[label.toLowerCase()] || '#95a5a6');
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels.map(label => label.charAt(0).toUpperCase() + label.slice(1)),
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: backgroundColors.map(color => color),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, usePointStyle: true }
                     }
                 }
             }
-        }
-    });
+        });
+    }
 });
 
-function viewDetails(classificationId) {
-    // This would typically fetch details from the server
-    // For now, we'll show a placeholder
+// GANTI FUNGSI LAMA DENGAN YANG INI DI dashboard.html
+async function viewDetails(classificationId) {
     const modalBody = document.getElementById('modalBody');
+    const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+
+    // 1. Tampilkan modal dengan spinner loading
     modalBody.innerHTML = `
-        <div class="text-center">
-            <div class="spinner-border" role="status">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <p class="mt-2">Loading classification details...</p>
-        </div>
-    `;
-    
-    const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
-    modal.show();
-    
-    // Simulate loading
-    setTimeout(() => {
-        modalBody.innerHTML = `
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                Detailed view functionality would be implemented here.
+            <p class="mt-3 text-muted">Mengambil detail...</p>
+        </div>`;
+    detailsModal.show();
+
+    try {
+        // 2. Ambil data dari API
+        const response = await fetch(`/api/classification/${classificationId}`);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Gagal memuat detail.');
+        }
+
+        const details = await response.json();
+
+        // 3. Proses data probabilitas
+        const probabilities = JSON.parse(details.class_probabilities || '{}');
+        const sortedProbs = Object.entries(probabilities).sort(([,a],[,b]) => b-a);
+        
+        let probHtml = '';
+        sortedProbs.forEach(([name, prob]) => {
+            probHtml += `
+                <div class="prediction-item">
+                    <div class="prediction-info">
+                        <span class="prediction-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
+                        <span class="prediction-prob">${prob.toFixed(1)}%</span>
+                    </div>
+                    <div class="prediction-bar">
+                        <div class="prediction-fill prediction-${name.toLowerCase()}" style="width: ${prob}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        // Format tanggal
+        const formattedDate = new Date(details.created_at).toLocaleString('id-ID', {
+            dateStyle: 'full',
+            timeStyle: 'short'
+        });
+
+        // 4. Bangun HTML untuk modal dengan path gambar yang sudah diperbaiki
+        const detailHtml = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Gambar</h5>
+                    <img src="/static/uploads/${details.image_path}" class="img-fluid rounded shadow-sm" alt="Classification image">
+                </div>
+                <div class="col-md-6">
+                    <h5 class="mb-3">Hasil Klasifikasi</h5>
+                    <div class="predicted-class text-center bg-light p-3 rounded">
+                         <h3 class="waste-type waste-${details.predicted_class.toLowerCase()}">${details.predicted_class}</h3>
+                         <div class="confidence-score">
+                            <span class="confidence-label">Tingkat Keyakinan:</span>
+                            <span class="confidence-value">${details.confidence.toFixed(1)}%</span>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" style="width: ${details.confidence}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="all-predictions">
+                        <h6>Semua Prediksi:</h6>
+                        ${probHtml}
+                    </div>
+                     <hr>
+                     <p class="text-muted small mt-3">
+                        <i class="fas fa-calendar-alt me-2"></i>Diklasifikasi pada: ${formattedDate}
+                     </p>
+                </div>
             </div>
         `;
-    }, 1500);
+
+        // 5. Masukkan HTML ke dalam modal
+        modalBody.innerHTML = detailHtml;
+
+    } catch (error) {
+        // 6. Tangani error
+        modalBody.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Error:</strong> Tidak dapat mengambil detail klasifikasi. ${error.message}
+            </div>`;
+    }
 }
 
 function loadMoreClassifications() {
-    // This would typically load more data from the server
-    alert('Load more functionality would be implemented here.');
+    alert('Fungsi "Load More" belum diimplementasikan.');
 }
 </script>
 {% endblock %}

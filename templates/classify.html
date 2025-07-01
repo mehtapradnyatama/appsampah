@@ -15,7 +15,6 @@
         </div>
 
         {% if not result %}
-        <!-- Upload Section -->
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <div class="upload-card">
@@ -53,7 +52,6 @@
             </div>
         </div>
 
-        <!-- Instructions -->
         <div class="row mt-5">
             <div class="col-12">
                 <div class="instructions-card">
@@ -79,31 +77,30 @@
         </div>
 
         {% else %}
-        <!-- Results Section -->
         <div class="row justify-content-center">
             <div class="col-md-10 col-lg-8">
                 <div class="results-card">
-                    <div class="row">
-                        <div class="col-md-6">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 text-center">
+                            <h5 class="mb-3">Gambar yang Diklasifikasi</h5>
                             <div class="result-image">
                                 <img src="{{ url_for('static', filename='uploads/' + image_path) }}" 
-                                     alt="Classified Image" 
-                                     class="img-fluid rounded">
+                                     alt="Gambar yang diklasifikasikan sebagai {{ predicted_class }}" 
+                                     class="img-fluid rounded shadow-sm">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="result-content">
                                 <div class="result-header">
-                                    <h3><i class="fas fa-check-circle text-success me-2"></i>Classification Complete</h3>
+                                    <h3><i class="fas fa-check-circle text-success me-2"></i>Klasifikasi Selesai</h3>
                                 </div>
-
                                 <div class="result-main">
                                     <div class="predicted-class">
                                         <h2 class="waste-type waste-{{ predicted_class.lower() }}">
                                             {{ predicted_class.title() }}
                                         </h2>
                                         <div class="confidence-score">
-                                            <span class="confidence-label">Confidence:</span>
+                                            <span class="confidence-label">Tingkat Keyakinan:</span>
                                             <span class="confidence-value">{{ "%.1f"|format(confidence) }}%</span>
                                             <div class="confidence-bar">
                                                 <div class="confidence-fill" style="width: {{ confidence }}%"></div>
@@ -111,9 +108,8 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="all-predictions">
-                                    <h5>All Predictions:</h5>
+                                    <h5>Semua Prediksi:</h5>
                                     {% for class_name, prob in class_probs.items() %}
                                     <div class="prediction-item">
                                         <div class="prediction-info">
@@ -127,13 +123,12 @@
                                     </div>
                                     {% endfor %}
                                 </div>
-
                                 <div class="result-actions">
                                     <a href="{{ url_for('classify') }}" class="btn btn-primary">
-                                        <i class="fas fa-camera me-2"></i>Classify Another
+                                        <i class="fas fa-camera me-2"></i>Klasifikasi Lagi
                                     </a>
                                     <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
-                                        <i class="fas fa-chart-bar me-2"></i>View History
+                                        <i class="fas fa-chart-bar me-2"></i>Lihat Riwayat
                                     </a>
                                 </div>
                             </div>
@@ -141,12 +136,10 @@
                     </div>
                 </div>
 
-                <!-- Recycling Information -->
-                <div class="recycling-info">
-                    <h4><i class="fas fa-recycle me-2"></i>Recycling Information</h4>
+                <div class="recycling-info mt-4">
+                    <h4><i class="fas fa-recycle me-2"></i>Informasi Daur Ulang</h4>
                     <div class="recycling-content" id="recyclingContent">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
@@ -157,186 +150,173 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const previewSection = document.getElementById('previewSection');
-    const imagePreview = document.getElementById('imagePreview');
-    const fileDetails = document.getElementById('fileDetails');
-    const classifyBtn = document.getElementById('classifyBtn');
-    const uploadForm = document.getElementById('uploadForm');
-    const loadingSpinner = document.getElementById('loadingSpinner');
+    function removeImage() {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput) fileInput.value = '';
+        const previewSection = document.getElementById('previewSection');
+        if (previewSection) previewSection.style.display = 'none';
+        const uploadArea = document.getElementById('uploadArea');
+        if (uploadArea) uploadArea.style.display = 'block';
+        const classifyBtn = document.getElementById('classifyBtn');
+        if (classifyBtn) classifyBtn.disabled = true;
+    }
 
-    // Upload area click
-    uploadArea.addEventListener('click', () => fileInput.click());
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- LOGIKA UNTUK HALAMAN UNGGAH ---
+        const uploadArea = document.getElementById('uploadArea');
+        if (uploadArea) {
+            const fileInput = document.getElementById('fileInput');
+            const previewSection = document.getElementById('previewSection');
+            const imagePreview = document.getElementById('imagePreview');
+            const fileDetails = document.getElementById('fileDetails');
+            const classifyBtn = document.getElementById('classifyBtn');
+            const uploadForm = document.getElementById('uploadForm');
+            const loadingSpinner = document.getElementById('loadingSpinner');
 
-    // Drag and drop functionality
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('drag-over');
-    });
+            uploadArea.addEventListener('click', () => fileInput.click());
 
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('drag-over');
-    });
+            const dragEvents = ['dragover', 'dragleave', 'drop'];
+            dragEvents.forEach(eventName => {
+                uploadArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (eventName === 'dragover') uploadArea.classList.add('drag-over');
+                    else uploadArea.classList.remove('drag-over');
+                    
+                    if (eventName === 'drop') {
+                         const files = e.dataTransfer.files;
+                         if (files.length > 0) handleFile(files[0]);
+                    }
+                });
+            });
 
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFile(files[0]);
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) handleFile(e.target.files[0]);
+            });
+
+            function handleFile(file) {
+                if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
+                if (file.size > 16 * 1024 * 1024) { alert('File size must be less than 16MB.'); return; }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    previewSection.style.display = 'block';
+                    uploadArea.style.display = 'none';
+                    classifyBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+                fileDetails.innerHTML = `<p><strong>File:</strong> ${file.name}</p><p><strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>`;
+            }
+
+            uploadForm.addEventListener('submit', function() {
+                classifyBtn.disabled = true;
+                loadingSpinner.classList.remove('d-none');
+                classifyBtn.innerHTML = '<i class="fas fa-brain me-2"></i>Processing... <span class="spinner-border spinner-border-sm ms-2"></span>';
+            });
         }
-    });
 
-    // File input change
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
-        }
-    });
-
-    function handleFile(file) {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('Please select an image file.');
-            return;
-        }
-
-        // Validate file size (16MB)
-        if (file.size > 16 * 1024 * 1024) {
-            alert('File size must be less than 16MB.');
-            return;
-        }
-
-        // Create preview
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            imagePreview.src = e.target.result;
-            previewSection.style.display = 'block';
-            uploadArea.style.display = 'none';
-            classifyBtn.disabled = false;
+        // --- LOGIKA UNTUK HALAMAN HASIL ---
+        {% if result %}
+        const recyclingInfoData = {
+            cardboard: {
+                icon: 'fas fa-box', color: '#f39c12',
+                description: 'Kardus adalah material berbasis kertas yang tebal dan kaku, umumnya digunakan untuk pengemasan. Bahan ini sangat mudah didaur ulang dan merupakan salah satu komoditas daur ulang yang paling berharga.',
+                tips: [
+                    'Pastikan kardus dalam keadaan kering dan bersih dari sisa makanan atau minyak.',
+                    'Lepaskan semua bahan non-kertas seperti selotip plastik, styrofoam, dan bubble wrap.',
+                    'Lipat atau ratakan kardus untuk menghemat ruang di tempat sampah dan saat diangkut.',
+                    'Jangan sertakan karton minuman (seperti Tetra Pak) karena memiliki lapisan plastik & aluminium, kecuali fasilitas daur ulang Anda menerimanya secara spesifik.'
+                ],
+                produkDaurUlang: 'Kotak kardus baru, kertas karton, bahan pengisi, kertas tisu, dan bahkan bahan bangunan seperti papan partikel.',
+                dampakLingkungan: 'Mendaur ulang 1 ton kardus dapat menghemat sekitar 17 pohon, 2.5 meter kubik ruang TPA, dan mengurangi polusi udara hingga 74% dibandingkan membuat kardus baru.'
+            },
+            glass: {
+                icon: 'fas fa-wine-bottle', color: '#27ae60',
+                description: 'Kaca adalah material unik yang dapat didaur ulang 100% tanpa henti tanpa kehilangan kualitas atau kemurniannya. Ini menjadikannya bahan kemasan yang sangat berkelanjutan.',
+                tips: [
+                    'Bilas botol dan toples kaca untuk menghilangkan sisa cairan atau makanan.',
+                    'Lepaskan tutup yang terbuat dari logam atau plastik; tutup ini dapat didaur ulang secara terpisah.',
+                    'Tidak perlu melepas label kertas karena akan terbakar selama proses peleburan.',
+                    'Jangan masukkan barang-barang seperti cermin, kaca jendela, bola lampu, atau piring keramik ke dalam daur ulang kaca biasa karena memiliki komposisi kimia yang berbeda.'
+                ],
+                produkDaurUlang: 'Botol dan toples kaca baru, bahan fiberglass, bahan campuran aspal (glassphalt), dan media filtrasi air.',
+                dampakLingkungan: 'Menggunakan kaca daur ulang mengurangi emisi dan konsumsi energi hingga 30% dibandingkan membuat kaca dari bahan mentah, serta mengurangi limbah pertambangan pasir.'
+            },
+            metal: {
+                icon: 'fas fa-cog', color: '#3498db',
+                description: 'Logam seperti aluminium dan baja sangat berharga untuk didaur ulang karena prosesnya menghemat sejumlah besar energi dan sumber daya alam dibandingkan dengan penambangan bijih baru.',
+                tips: [
+                    'Pastikan kaleng makanan dan minuman kosong dan sudah dibilas bersih.',
+                    'Remukkan kaleng aluminium untuk menghemat ruang.',
+                    'Foil aluminium yang bersih (tanpa sisa makanan) dapat digulung menjadi bola sebelum didaur ulang.',
+                    'Jangan masukkan kaleng cat, tabung aerosol bertekanan, atau limbah elektronik ke dalam daur ulang logam rumah tangga.'
+                ],
+                produkDaurUlang: 'Kaleng aluminium dan baja baru, suku cadang mobil dan pesawat, rangka sepeda, dan komponen bangunan.',
+                dampakLingkungan: 'Mendaur ulang aluminium menghemat 95% energi yang dibutuhkan untuk membuatnya dari bijih bauksit. Satu kaleng daur ulang dapat menghemat energi yang cukup untuk menyalakan TV selama 3 jam.'
+            },
+            paper: {
+                icon: 'fas fa-file-alt', color: '#9b59b6',
+                description: 'Kertas berasal dari pohon dan proses daur ulangnya secara signifikan mengurangi deforestasi, penggunaan air, dan energi. Hampir semua jenis kertas dapat didaur ulang.',
+                tips: [
+                    'Jaga agar kertas tetap kering dan tidak terkontaminasi oleh makanan atau minyak.',
+                    'Staples dan klip kecil umumnya tidak masalah karena dapat dihilangkan oleh magnet di fasilitas daur ulang.',
+                    'Jangan sertakan kertas yang kotor, kertas tisu, serbet, atau kertas foto karena seratnya terlalu pendek atau terkontaminasi.',
+                    'Kertas robek atau "shredded paper" sebaiknya dimasukkan ke dalam kantong kertas agar tidak berceceran.'
+                ],
+                produkDaurUlang: 'Kertas koran, kertas kantor, majalah, kertas toilet, karton telur, dan insulasi selulosa.',
+                dampakLingkungan: 'Setiap ton kertas daur ulang menyelamatkan sekitar 17 pohon, 26.500 liter air, dan mengurangi emisi gas rumah kaca secara signifikan.'
+            },
+            plastic: {
+                icon: 'fas fa-bottle-water', color: '#e74c3c',
+                description: 'Plastik adalah material yang kompleks dengan banyak jenis berbeda. Penting untuk mengidentifikasi jenis plastik (melalui kode segitiga 1-7) untuk memastikan daur ulang yang benar.',
+                tips: [
+                    'Kosongkan dan bilas semua wadah plastik dari sisa-sisa.',
+                    'Biarkan tutup botol tetap terpasang jika memungkinkan, karena fasilitas modern dapat memisahkannya. Jika tidak, buang secara terpisah.',
+                    'Jangan masukkan kantong plastik atau bungkus plastik tipis ke tempat daur ulang curbside; kumpulkan dan bawa ke titik pengumpulan khusus (misal: di supermarket).',
+                    'Hindari memasukkan mainan plastik, selang, atau plastik keras non-kemasan lainnya.'
+                ],
+                produkDaurUlang: 'Botol baru (PET), serat karpet, pakaian (poliester), kayu plastik untuk bangku taman, dan mainan.',
+                dampakLingkungan: 'Daur ulang plastik mengurangi kebutuhan akan minyak bumi mentah, menghemat energi, dan mencegah plastik mencemari lautan dan daratan yang membahayakan satwa liar.'
+            }
         };
-        reader.readAsDataURL(file);
 
-        // Show file details
-        fileDetails.innerHTML = `
-            <p><strong>File:</strong> ${file.name}</p>
-            <p><strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-            <p><strong>Type:</strong> ${file.type}</p>
-        `;
-    }
+        function populateRecyclingInfo(wasteType) {
+            const info = recyclingInfoData[wasteType];
+            if (!info) return;
 
-    // Form submission
-    uploadForm.addEventListener('submit', function(e) {
-        classifyBtn.disabled = true;
-        loadingSpinner.classList.remove('d-none');
-        classifyBtn.innerHTML = '<i class="fas fa-brain me-2"></i>Processing... <span class="spinner-border spinner-border-sm ms-2"></span>';
+            const contentEl = document.getElementById('recyclingContent');
+            if (!contentEl) return;
+            
+            const displayName = wasteType.charAt(0).toUpperCase() + wasteType.slice(1);
+            
+            contentEl.innerHTML = `
+                <div class="recycling-details p-3">
+                    <div class="recycling-header d-flex align-items-center mb-3">
+                        <i class="${info.icon} fa-2x me-3" style="color: ${info.color};"></i>
+                        <h4 class="mb-0">Panduan Daur Ulang untuk ${displayName}</h4>
+                    </div>
+                    <p class="recycling-description fst-italic text-muted">${info.description}</p>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="recycling-tips">
+                                <h6><i class="fas fa-lightbulb me-2 text-warning"></i>Tips Daur Ulang</h6>
+                                <ul class="list-unstyled">${info.tips.map(tip => `<li class="d-flex"><i class="fas fa-check-circle text-success me-2 mt-1"></i><span>${tip}</span></li>`).join('')}</ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                             <h6><i class="fas fa-industry me-2 text-primary"></i>Produk Hasil Daur Ulang</h6>
+                             <p>${info.produkDaurUlang}</p>
+                             <h6 class="mt-3"><i class="fas fa-leaf me-2 text-success"></i>Dampak Lingkungan Positif</h6>
+                             <p>${info.dampakLingkungan}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        populateRecyclingInfo('{{ predicted_class.lower() }}');
+        {% endif %}
     });
-
-    // Populate recycling information if we have results
-    {% if result %}
-    populateRecyclingInfo('{{ predicted_class.lower() }}');
-    {% endif %}
-});
-
-function removeImage() {
-    document.getElementById('fileInput').value = '';
-    document.getElementById('previewSection').style.display = 'none';
-    document.getElementById('uploadArea').style.display = 'block';
-    document.getElementById('classifyBtn').disabled = true;
-}
-
-const recyclingInfo = {
-    cardboard: {
-        icon: 'fas fa-box',
-        color: '#f39c12',
-        description: 'Cardboard is highly recyclable and can be turned into new boxes and paper products.',
-        tips: [
-            'Remove all tape, staples, and labels',
-            'Break down boxes to save space',
-            'Keep dry - wet cardboard can\'t be recycled',
-            'Don\'t include food-stained cardboard'
-        ],
-        process: 'Cardboard is pulped, cleaned, and reformed into new paper products.'
-    },
-    glass: {
-        icon: 'fas fa-wine-bottle',
-        color: '#27ae60',
-        description: 'Glass can be recycled indefinitely without losing quality.',
-        tips: [
-            'Remove lids and caps',
-            'Rinse containers to remove food residue',
-            'Don\'t mix different glass colors',
-            'Don\'t include broken glass in regular recycling'
-        ],
-        process: 'Glass is crushed, melted, and reformed into new containers.'
-    },
-    metal: {
-        icon: 'fas fa-cog',
-        color: '#3498db',
-        description: 'Metal recycling saves energy and natural resources.',
-        tips: [
-            'Rinse cans and containers',
-            'Remove labels if easily removable',
-            'Crush cans to save space',
-            'Don\'t include metal caps from glass bottles'
-        ],
-        process: 'Metal is melted down and reformed into new products.'
-    },
-    paper: {
-        icon: 'fas fa-file-alt',
-        color: '#9b59b6',
-        description: 'Paper recycling helps preserve forests and reduces landfill waste.',
-        tips: [
-            'Remove all staples and clips',
-            'Don\'t include wax-coated or plastic-coated paper',
-            'Keep paper dry and clean',
-            'Separate different paper grades'
-        ],
-        process: 'Paper is pulped, de-inked, and reformed into new paper products.'
-    },
-    plastic: {
-        icon: 'fas fa-bottle-water',
-        color: '#e74c3c',
-        description: 'Plastic recycling reduces ocean pollution and conserves resources.',
-        tips: [
-            'Check the recycling number on the bottom',
-            'Rinse containers thoroughly',
-            'Remove caps and lids',
-            'Don\'t include plastic bags in curbside recycling'
-        ],
-        process: 'Plastic is shredded, melted, and reformed into new plastic products.'
-    }
-};
-
-function populateRecyclingInfo(wasteType) {
-    const info = recyclingInfo[wasteType];
-    if (!info) return;
-
-    const content = document.getElementById('recyclingContent');
-    content.innerHTML = `
-        <div class="recycling-details">
-            <div class="recycling-header">
-                <i class="${info.icon} me-2" style="color: ${info.color}"></i>
-                <h5>${wasteType.charAt(0).toUpperCase() + wasteType.slice(1)} Recycling</h5>
-            </div>
-            <p class="recycling-description">${info.description}</p>
-            
-            <div class="recycling-tips">
-                <h6><i class="fas fa-lightbulb me-2"></i>Recycling Tips:</h6>
-                <ul>
-                    ${info.tips.map(tip => `<li>${tip}</li>`).join('')}
-                </ul>
-            </div>
-            
-            <div class="recycling-process">
-                <h6><i class="fas fa-cogs me-2"></i>How it's processed:</h6>
-                <p>${info.process}</p>
-            </div>
-        </div>
-    `;
-}
 </script>
 {% endblock %}
